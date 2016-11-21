@@ -45,6 +45,7 @@ test_url="http://lacedeamon.spartaglobal.com/todos"
     posted_ids.push(post['id'])
     get = HTTParty.get "#{test_url}/#{post['id']}"
     expect(get.code).to eq 200
+    expect(get.message).to eq 'OK'
     expect(get["title"]).to eq "find me!"
   end
 
@@ -56,10 +57,14 @@ test_url="http://lacedeamon.spartaglobal.com/todos"
     get = HTTParty.get("#{test_url}/#{post['id']}")
     expect(get['title']).to eq "patched"
     expect(get['due']).to eq "2016-11-21"
+    expect(get.code).to eq 200
+    expect(get.message).to eq 'OK'
   end
 
   it "shouldn't be able to patch an entire collection" do
     patch = HTTParty.patch(test_url, query:{title: 'patched', due: Date.parse("02 Feb 2020")})
+    expect(patch.code).to eq 405
+    expect(patch.message).to eq 'Method Not Allowed'
   end
 
   it "it should be able to run PUT requests" do
@@ -69,16 +74,20 @@ test_url="http://lacedeamon.spartaglobal.com/todos"
     get = HTTParty.get("#{test_url}/#{post['id']}")
     expect(get['title']).to eq 'get putted'
     expect(get.code).to eq 200
+    expect(get.message).to eq "OK"
   end
 
   it "shouldn't be able to PUT to the collection" do
     put = HTTParty.put(test_url, query:{title: 'invalid put', due: Date.parse("20 April 2420")})
     expect(put.code).to eq 405
+    expect(put.message).to eq 'Method Not Allowed'
   end
 
   it "should tear down after testing" do
     posted_ids.each do |id|
-      x = HTTParty.delete("#{test_url}/#{id}")
+      del = HTTParty.delete("#{test_url}/#{id}")
+      expect(del.message).to eq 'No Content'
+      expect(del.code).to eq 204
     end
   end
 end
